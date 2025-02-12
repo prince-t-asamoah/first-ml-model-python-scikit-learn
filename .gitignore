@@ -1,0 +1,33 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+.env/
+
+# Bytecode
+__pycache__/
+*.py[cod]
+
+# Compiled Extensions
+*.so
+*.pyd
+
+# Development and Test Artifacts
+.pytest_cache/
+*.egg-info/
+*.egg
+
+# IDE/Editor Configurations
+.idea/
+.vscode/
+*.swp
+*.sublime-project
+*.sublime-workspace
+
+# Configuration Files
+.env
+*.log
+
+# Distribution Packages
+dist/
+build/

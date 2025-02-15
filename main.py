@@ -1,24 +1,91 @@
 # %%
-#1. Load Libraries
+# 1. Load Libraries
+warnings.filterwarnings("ignore", category=UserWarning)
 import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
-warnings.filterwarnings("ignore", category=UserWarning)
+
+from sklearn.calibration import LabelEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.discriminant_analysis import StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
 
 
-#2. Data Exploration
+# 2. Data Exploration
 
 df_churn_data = pd.read_csv('./data/mergedcustomers_missing_values_GENDER.csv')
-df_churn_data.head() # Display the first five rows of the dataset
+df_churn_data.head()  # Display the first five rows of the dataset
 
-print('The dataset contains columns of the following dat types: \n' + str(df_churn_data.dtypes))
-print('The dataset contains following number of records: for each of the columns : \n' + str(df_churn_data.count()))
+print('The dataset contains columns of the following dat types: \n' +
+      str(df_churn_data.dtypes))
+print('The dataset contains following number of records: for each of the columns : \n' +
+      str(df_churn_data.count()))
 print('Each category within the churndisk column has the following counts: ')
 print(df_churn_data.groupby('CHURNRISK').size())
 
 index = ['High', 'Medium', 'Low']
-churn_plot = df_churn_data['CHURNRISK'].value_counts(sort=True, ascending=False).plot(kind='bar', figsize=(4, 4),title='Total number for occurences of churn risk ' + str(df_churn_data['CHURNRISK'].count()), color=['#BB6B5A','#8CCB9B','#E5E88B'])
+churn_plot = df_churn_data['CHURNRISK'].value_counts(sort=True, ascending=False).plot(kind='bar', figsize=(
+    4, 4), title='Total number for occurences of churn risk ' + str(df_churn_data['CHURNRISK'].count()), color=['#BB6B5A', '#8CCB9B', '#E5E88B'])
 churn_plot.set_xlabel('Churn Risk')
 churn_plot.set_ylabel('Frequency')
 
 plt.show()
+# %%
+# 3. Data Preprocessing with Scikit-Learn
+
+df_churn_data = df_churn_data.drop(['ID'], axis=1) # Remove columns not required for the analysis
+df_churn_data.head()
+
+categorical_columns = ['GENDER', 'STATUS', 'HOMEOWNER'] # Categorical columns in the dataset
+
+print('Categorical columns in the dataset are: ')
+print(categorical_columns)
+print('\n')
+
+impute_categorical = SimpleImputer(strategy='most_frequent') # Fill missing values with the most frequent value
+onehot_categorical = OneHotEncoder(handle_unknown='ignore') # Convert categories of data type string into numbers
+
+categorical_transformer = Pipeline(
+    steps=[('impute', impute_categorical), ('onehot', onehot_categorical)])
+
+numerical_columns = df_churn_data.select_dtypes(
+    include=[float, int]).columns  # Numerical columns in the dataset
+print('Numerical columns in the dataset are: ')
+print(numerical_columns)
+print('\n')
+
+scaler_numberical = StandardScaler()
+numerical_transformer = Pipeline(
+    steps=[('scaler', scaler_numberical)])  # Scale the numerical columns
+
+preprocessorForCategoricalColumns = ColumnTransformer(
+    transformers=[('cat', categorical_transformer, categorical_columns)])
+preprocessorForAllColumns = ColumnTransformer(transformers=[(
+    'cat', categorical_transformer, categorical_columns), ('num', numerical_transformer, numerical_columns)])
+
+# The transformation happens in the piepeline. Temporrily done here to show what intermediate value looks like
+df_churn_pd_temp_1 = preprocessorForCategoricalColumns.fit_transform(
+    df_churn_data)
+print('The transformed dataset after preprocessing the categorical columns is: ')
+print(df_churn_pd_temp_1)
+print('\n')
+
+df_churn_pd_temp_2 = preprocessorForAllColumns.fit_transform(df_churn_data)
+print('The transformed dataset after preprocessing all the columns is: ')
+print(df_churn_pd_temp_2)
+print('\n')
+
+# Prepare data frame for spitting data into train and test datasets
+features = []
+features  = df_churn_data.drop(['CHURNRISK'], axis=1)
+
+label_churn = pd.DataFrame(df_churn_data, columns=['CHURNRISK'])
+label_encoder = LabelEncoder()
+label = df_churn_data['CHURNRISK']
+
+label  = label_encoder.fit_transform(label)
+print('Encoded value of Churnrisk after applying label encoder: ' + str(label))
+
+# %%

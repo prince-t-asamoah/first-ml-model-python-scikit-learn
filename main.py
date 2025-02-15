@@ -1,6 +1,5 @@
 # %%
 # 1. Load Libraries
-warnings.filterwarnings("ignore", category=UserWarning)
 import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -8,14 +7,19 @@ import matplotlib.pyplot as plt
 from sklearn.calibration import LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.discriminant_analysis import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
+from utils import model_metrics, three_d_compare, two_d_compare
+warnings.filterwarnings("ignore", category=UserWarning)
 
+
+# %%
 # 2. Data Exploration
-
+# Load the dataset
 df_churn_data = pd.read_csv('./data/mergedcustomers_missing_values_GENDER.csv')
 df_churn_data.head()  # Display the first five rows of the dataset
 
@@ -90,7 +94,30 @@ label  = label_encoder.fit_transform(label)
 print('Encoded value of Churnrisk after applying label encoder: ' + str(label))
 
 # %%
-# Spliting Data for Training and Testing
+# 4. Spliting Data for Training and Testing
 x_train, x_test, y_train, y_test = train_test_split(features, label, random_state=0)
 print('Dimensios of datasets that will be used for training : Input features' + str(x_train.shape) + ' Output features' + str(y_train.shape))
 print('Dimensios of datasets that will be used for testing : Input features' + str(x_test.shape) + ' Output features' + str(y_test.shape))
+
+# %%
+# 5. Preparing a classification model
+model_name = 'Random Forest Classifier'
+randomForestClassifier = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
+
+# %%
+# 6.  Assembling the steps using pipeline
+rfc_model = Pipeline(steps=[('preprocessorAll', preprocessorForAllColumns), ('classifier', randomForestClassifier)])
+rfc_model.fit(x_train, y_train)
+
+# %%
+#7. Running predictions on model
+y_pred_rfc = rfc_model.predict(x_test)
+
+# %%
+# 8. Model Evaluation and Visualization
+two_d_compare(y_test, y_pred_rfc, model_name, x_test)
+three_d_compare(y_test, y_pred_rfc, model_name, x_test)
+
+y_test = label_encoder.inverse_transform(y_test)
+y_pred_rfc = label_encoder.inverse_transform (y_pred_rfc)
+model_metrics(y_test, y_pred_rfc)

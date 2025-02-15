@@ -9,6 +9,7 @@ from sklearn.calibration import LabelEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.discriminant_analysis import StandardScaler
 from sklearn.impute import SimpleImputer
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -89,3 +90,7 @@ label  = label_encoder.fit_transform(label)
 print('Encoded value of Churnrisk after applying label encoder: ' + str(label))
 
 # %%
+# Spliting Data for Training and Testing
+x_train, x_test, y_train, y_test = train_test_split(features, label, random_state=0)
+print('Dimensios of datasets that will be used for training : Input features' + str(x_train.shape) + ' Output features' + str(y_train.shape))
+print('Dimensios of datasets that will be used for testing : Input features' + str(x_test.shape) + ' Output features' + str(y_test.shape))
